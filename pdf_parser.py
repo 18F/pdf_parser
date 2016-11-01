@@ -31,6 +31,18 @@ def segment_two(contents):
             relevant.append(line)
     return relevant
 
+def segment_three(contents):
+    relevant = []
+    start = False
+    for line in contents:
+        if "2.1 Is this a new PIA or a modification of an existing PIA?" in line:
+            start = True
+        if "2.2 What is this system for?" in line:
+            start = False
+        if start:
+            relevant.append(line)
+    return relevant
+
 
 def parse(df,file_name):
     tmp = {}
@@ -41,6 +53,7 @@ def parse(df,file_name):
     #parsing txt section
     relevant_segment_one = segment_one(text)
     relevant_segment_two = segment_two(text)
+    relevant_segment_three = segment_three(text)
     
     #adding to tmp object to store results section
     for ind,line in enumerate(relevant_segment_one):
@@ -77,7 +90,25 @@ def parse(df,file_name):
             tmp["State/Territory"] = line.split("(State/Territory)")[1].strip()
         if "(contact zip)" in line:
             tmp["contact zip"] = line.split("(contact zip)")[1].strip()
-            
+
+    new_pia_modification_flag = False
+    for ind,line in enumerate(relevant_segment_three):
+        if "(New PIA or modification: New)" in line:
+            if "Checked" in line:
+                tmp["New PIA or modification"] = "New"
+    
+        if "(New PIA or modification: Modification)" in line:
+            if "Checked" in line:
+                tmp["New PIA or modification"] = "Modification"
+                new_pia_modification_flag = True
+        if not "New PIA or modification" in tmp.keys():
+            tmp["New PIA or modification"] = "N/A"
+        if new_pia_modification_flag:
+            if "(Name of existing PIA)" in line:
+                tmp["Name of existing PIA"] = line.split("(Name of existing PIA)")[1].strip()
+        if "(What is the system for)" in line:
+            tmp["What is the system for"] = line.split("(What is the system for)")[1].strip()
+        
     df = df.append(tmp,ignore_index=True)
     return df
 
