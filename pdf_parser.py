@@ -37,12 +37,35 @@ def segment_three(contents):
     for line in contents:
         if "2.1 Is this a new PIA or a modification of an existing PIA?" in line:
             start = True
-        if "2.2 What is this system for?" in line:
+        if "2.3 Legal Authorities" in line:
             start = False
         if start:
             relevant.append(line)
     return relevant
 
+def segment_four(contents):
+    relevant = []
+    start = False
+    for line in contents:
+        if "2.3 Legal Authorities" in line:
+            start = True
+        if "2.4 Other system information" in line:
+            start = False
+        if start:
+            relevant.append(line)
+    return relevant
+
+def segment_five(contents):
+    relevant = []
+    start = False
+    for line in contents:
+        if "2.4 Other system information" in line:
+            start = True
+        if "2.5 Enter the UII Code and the System Security Plan (SSP) Name" in line:
+            start = False
+        if start:
+            relevant.append(line)
+    return relevant
 
 def parse(df,file_name):
     tmp = {}
@@ -54,6 +77,8 @@ def parse(df,file_name):
     relevant_segment_one = segment_one(text)
     relevant_segment_two = segment_two(text)
     relevant_segment_three = segment_three(text)
+    relevant_segment_four = segment_four(text)
+    relevant_segment_five = segment_five(text)
     
     #adding to tmp object to store results section
     for ind,line in enumerate(relevant_segment_one):
@@ -108,7 +133,19 @@ def parse(df,file_name):
                 tmp["Name of existing PIA"] = line.split("(Name of existing PIA)")[1].strip()
         if "(What is the system for)" in line:
             tmp["What is the system for"] = line.split("(What is the system for)")[1].strip()
-        
+
+    for ind,line in enumerate(relevant_segment_four):
+        if "(Bureau or OfficeLegal authority: statute)" in line:
+            tmp["Bureau or Office Legal authority: Statute"] = line.split("(Bureau or OfficeLegal authority: statute)")[1].strip()
+        if "(Legal authority: executive order)" in line:
+            tmp["Legal authority: executive order"] = line.split("(Legal authority: executive order)")[1].strip()
+        if "(Legal authority: federal regulation)" in line:
+            tmp["Legal authority: federal regulation"] = line.split("(Legal authority: federal regulation)")[1].strip()
+        if "(Legal authority: MOU/Agreement)" in line:
+            tmp["Legal authority: MOU/Agreement"] = line.split("(Legal authority: MOU/Agreement)")[1].strip()
+        if "(Legal authority: other)" in line:
+            tmp["Legal authority: other"] in line.split("(Legal authority: other)")[1].strip()
+            
     df = df.append(tmp,ignore_index=True)
     return df
 
